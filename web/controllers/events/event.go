@@ -9,25 +9,25 @@ import (
 
 type (
 	Processor interface {
-		Process(events dtos.RawEventWithIP)
+		Process(events dtos.RawEnrichmentEvents)
 	}
 
-	events struct {
+	controller struct {
 		processor Processor
 	}
 )
 
-func New(p Processor) *events {
-	return &events{
+func New(p Processor) *controller {
+	return &controller{
 		processor: p,
 	}
 }
 
-func (e *events) Register(mux *http.ServeMux) {
+func (e *controller) Register(mux *http.ServeMux) {
 	mux.HandleFunc("/v1/events", e.post)
 }
 
-func (e *events) post(w http.ResponseWriter, r *http.Request) {
+func (e *controller) post(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
@@ -46,7 +46,7 @@ func (e *events) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e.processor.Process(dtos.RawEventWithIP{
+	e.processor.Process(dtos.RawEnrichmentEvents{
 		Events: events,
 		IP:     userIP,
 	})

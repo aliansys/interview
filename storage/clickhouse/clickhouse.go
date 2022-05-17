@@ -139,7 +139,7 @@ func (r *repo) Close() {
 	r.conn.Close()
 }
 
-func (r *repo) Store(evnts dtos.EventsWithIP) {
+func (r *repo) Store(evnts dtos.EnrichmentEvents) {
 	serverTime := time.Now()
 
 	r.m.Lock()

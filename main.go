@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/aliansys/interview/helpers/signals"
 	configparser "github.com/aliansys/interview/parsers/config/config"
-	"github.com/aliansys/interview/services/eventssaver"
+	"github.com/aliansys/interview/services/eventsprocessor"
 	"github.com/aliansys/interview/storage/clickhouse"
 	"github.com/aliansys/interview/storage/fake"
 	"github.com/aliansys/interview/web/controllers/events"
@@ -25,7 +25,7 @@ func main() {
 	noCHPtr := flag.Bool("no-ch", false, "run with no clickhouse server")
 	flag.Parse()
 
-	var storage eventssaver.Storage
+	var storage eventsprocessor.Storage
 
 	if !*noCHPtr {
 		storage, err = clickhouse.New(clickhouse.Config(cfg.ClickHouse), l)
@@ -39,11 +39,11 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	saver := eventssaver.New(storage, l)
-	defer saver.Close()
+	processor := eventsprocessor.New(storage, l)
+	defer processor.Close()
 
-	eventController := events.New(saver)
-	eventController.Register(mux)
+	controller := events.New(processor)
+	controller.Register(mux)
 
 	fmt.Printf("Server is listening on %v\n", cfg.Api.Address)
 	go func() {

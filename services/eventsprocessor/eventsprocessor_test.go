@@ -1,4 +1,4 @@
-package eventssaver
+package eventsprocessor
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 var benchmarkSizes = []int{1, 30, 100, 300}
 
 func BenchmarkProcess(b *testing.B) {
-	events := make(map[int]dtos.RawEventWithIP)
+	events := make(map[int]dtos.RawEnrichmentEvents)
 
 	sample := `{"client_time":"2020-12-01 23:59:00","device_id":"0287D9AA-4ADF-4B37-A60F-3E9E645C821E","device_os":"iOS 13.5.1","session":"ybuRi8mAUypxjbxQ","sequence":1,"event":"app_start","param_int":0,"param_str":"some text"}`
 
@@ -22,7 +22,7 @@ func BenchmarkProcess(b *testing.B) {
 		for i := 0; i < size; i++ {
 			str += sample + "\n"
 		}
-		events[size] = dtos.RawEventWithIP{
+		events[size] = dtos.RawEnrichmentEvents{
 			Events: str,
 			IP:     net.IPv4('8', '8', '8', '8'),
 		}
@@ -55,7 +55,7 @@ type (
 	}
 )
 
-func (m *mockStorage) Store(_ dtos.EventsWithIP) {
+func (m *mockStorage) Store(_ dtos.EnrichmentEvents) {
 	m.wg.Done()
 }
 

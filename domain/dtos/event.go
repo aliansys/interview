@@ -18,12 +18,12 @@ type (
 		ClientTime time.Time
 	}
 
-	EventsWithIP struct {
+	EnrichmentEvents struct {
 		Events []Event
 		IP     net.IP
 	}
 
-	RawEventWithIP struct {
+	RawEnrichmentEvents struct {
 		Events string
 		IP     net.IP
 	}

@@ -18,7 +18,7 @@ func New(l *log.Logger) (*fake, error) {
 
 func (f *fake) Close() {}
 
-func (f *fake) Store(_ dtos.EventsWithIP) {
+func (f *fake) Store(_ dtos.EnrichmentEvents) {
 	f.saved += 1
 	f.logger.Printf("total events saved %d\n", f.saved)
 }

@@ -1,4 +1,4 @@
-package eventssaver
+package eventsprocessor
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 type (
 	Storage interface {
-		Store(evnts dtos.EventsWithIP)
+		Store(dtos.EnrichmentEvents)
 		Close()
 	}
 
@@ -21,7 +21,7 @@ type (
 		ctx    context.Context
 		cancel context.CancelFunc
 
-		incoming chan dtos.RawEventWithIP
+		incoming chan dtos.RawEnrichmentEvents
 		logger   *log.Logger
 	}
 )
@@ -36,7 +36,7 @@ func New(r Storage, l *log.Logger) *saver {
 		ctx:    ctx,
 		cancel: cancel,
 
-		incoming: make(chan dtos.RawEventWithIP, numberOfWorkers),
+		incoming: make(chan dtos.RawEnrichmentEvents, numberOfWorkers),
 		logger:   l,
 	}
 
@@ -45,7 +45,7 @@ func New(r Storage, l *log.Logger) *saver {
 }
 
 func (s *saver) run() {
-	output := make(chan dtos.EventsWithIP, numberOfWorkers)
+	output := make(chan dtos.EnrichmentEvents, numberOfWorkers)
 
 	for i := 0; i < numberOfWorkers; i++ {
 		go s.parse(output)
@@ -62,11 +62,11 @@ func (s *saver) Close() {
 	}
 }
 
-func (s *saver) Process(events dtos.RawEventWithIP) {
+func (s *saver) Process(events dtos.RawEnrichmentEvents) {
 	s.incoming <- events
 }
 
-func (s *saver) parse(output chan dtos.EventsWithIP) {
+func (s *saver) parse(output chan dtos.EnrichmentEvents) {
 	p := &fastjson.Parser{}
 
 	for {
@@ -84,7 +84,7 @@ func (s *saver) parse(output chan dtos.EventsWithIP) {
 				continue
 			}
 
-			output <- dtos.EventsWithIP{
+			output <- dtos.EnrichmentEvents{
 				Events: evnts,
 				IP:     rawEvents.IP,
 			}
@@ -94,7 +94,7 @@ func (s *saver) parse(output chan dtos.EventsWithIP) {
 	}
 }
 
-func (s *saver) save(events chan dtos.EventsWithIP) {
+func (s *saver) save(events chan dtos.EnrichmentEvents) {
 	for {
 		select {
 		case es := <-events:
