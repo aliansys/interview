@@ -51,6 +51,8 @@ const (
 	tableName = "events"
 )
 
+var prepareInsertStatement = fmt.Sprintf("INSERT INTO %s", tableName)
+
 func New(cfg Config, l *log.Logger) (*repo, error) {
 	opts, err := clickhouse.ParseDSN(cfg.DSN)
 	if err != nil {
@@ -165,7 +167,7 @@ func (r *repo) save(ctx context.Context) error {
 	if len(r.batch) == 0 {
 		return nil
 	}
-	batch, err := r.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", tableName))
+	batch, err := r.conn.PrepareBatch(ctx, prepareInsertStatement)
 	if err != nil {
 		return err
 	}
