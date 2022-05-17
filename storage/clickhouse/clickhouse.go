@@ -141,12 +141,12 @@ func (r *repo) Close() {
 	r.conn.Close()
 }
 
-func (r *repo) Store(evnts dtos.EnrichmentEvents) {
+func (r *repo) Store(events dtos.EnrichmentEvents) {
 	serverTime := time.Now()
 
 	r.m.Lock()
-	for i := range evnts.Events {
-		e := evnts.Events[i]
+	for i := range events.Events {
+		e := events.Events[i]
 		r.batch = append(r.batch, event{
 			DeviceId:   e.DeviceId,
 			DeviceOs:   e.DeviceOs,
@@ -157,7 +157,7 @@ func (r *repo) Store(evnts dtos.EnrichmentEvents) {
 			ParamInt:   e.ParamInt,
 			ClientTime: e.ClientTime,
 			ServerTime: serverTime,
-			IP:         evnts.IP,
+			IP:         events.IP,
 		})
 	}
 	r.m.Unlock()
