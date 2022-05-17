@@ -38,6 +38,8 @@ func (c *controller) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusNoContent)
+
 	events := r.FormValue("events")
 	userIP, err := nethelpers.IpFromAddressString(r.RemoteAddr)
 	if err != nil {
