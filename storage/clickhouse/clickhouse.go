@@ -25,17 +25,12 @@ type (
 		conn  driver.Conn
 		batch []event
 
-		statements statements
-		m          *sync.RWMutex
+		m *sync.RWMutex
 
 		ctx    context.Context
 		cancel context.CancelFunc
 
 		logger *log.Logger
-	}
-
-	statements struct {
-		insert string
 	}
 
 	event struct {
@@ -81,9 +76,6 @@ func New(cfg Config, l *log.Logger) (*repo, error) {
 		conn:   conn,
 		batch:  make([]event, 0, cfg.BatchSize),
 		m:      new(sync.RWMutex),
-		statements: statements{
-			insert: fmt.Sprintf("INSERT INTO %s", tableName),
-		},
 		ctx:    ctx,
 		cancel: cancel,
 		logger: l,
@@ -173,7 +165,7 @@ func (r *repo) save(ctx context.Context) error {
 	if len(r.batch) == 0 {
 		return nil
 	}
-	batch, err := r.conn.PrepareBatch(ctx, r.statements.insert)
+	batch, err := r.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", tableName))
 	if err != nil {
 		return err
 	}
