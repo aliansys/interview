@@ -2,10 +2,10 @@ package eventssaver
 
 import (
 	"context"
-	"fmt"
 	"github.com/aliansys/interview/domain/dtos"
 	"github.com/aliansys/interview/parsers/dtos/events"
 	"github.com/valyala/fastjson"
+	"log"
 	"runtime"
 )
 
@@ -22,13 +22,14 @@ type (
 		cancel context.CancelFunc
 
 		incoming chan dtos.RawEventWithIP
+		logger   *log.Logger
 	}
 )
 
 // numberOfWorkers - разделен на 2, чтобы половину "воркеров" дать на парсинг и половину на сохранение
 var numberOfWorkers = runtime.NumCPU() / 2
 
-func New(r Repo) *saver {
+func New(r Repo, l *log.Logger) *saver {
 	ctx, cancel := context.WithCancel(context.Background())
 	saver := &saver{
 		repo:   r,
@@ -36,6 +37,7 @@ func New(r Repo) *saver {
 		cancel: cancel,
 
 		incoming: make(chan dtos.RawEventWithIP, numberOfWorkers),
+		logger:   l,
 	}
 
 	saver.run()
@@ -74,7 +76,7 @@ func (s *saver) parse(output chan dtos.EventsWithIP) {
 			if err != nil {
 				// здесь не до конца понятно насколько нам критичны подобного рода ошибки
 				// как минимум такое можно залогировать в систему мониторинга ошибок (условная Sentry)
-				fmt.Printf("parsing error: %s\n", err)
+				s.logger.Printf("parsing error: %s\n", err)
 				continue
 			}
 

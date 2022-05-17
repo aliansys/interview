@@ -9,6 +9,7 @@ import (
 	"github.com/aliansys/interview/storage/clickhouse"
 	"github.com/aliansys/interview/storage/fake"
 	"github.com/aliansys/interview/web/controllers/events"
+	"log"
 	"net/http"
 	"syscall"
 )
@@ -19,24 +20,26 @@ func main() {
 		panic(err)
 	}
 
+	l := log.Default()
+
 	noCHPtr := flag.Bool("no-ch", false, "run with no clickhouse server")
 	flag.Parse()
 
 	var storage eventssaver.Repo
 
 	if !*noCHPtr {
-		storage, err = clickhouse.New(clickhouse.Config(cfg.ClickHouse))
+		storage, err = clickhouse.New(clickhouse.Config(cfg.ClickHouse), l)
 		if err != nil {
 			panic(err)
 		}
 		defer storage.Close()
 	} else {
-		storage, _ = fake.New()
+		storage, _ = fake.New(l)
 	}
 
 	mux := http.NewServeMux()
 
-	saver := eventssaver.New(storage)
+	saver := eventssaver.New(storage, l)
 	defer saver.Close()
 
 	eventController := events.New(saver)

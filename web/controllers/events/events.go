@@ -3,7 +3,7 @@ package events
 import (
 	"fmt"
 	"github.com/aliansys/interview/domain/dtos"
-	net2 "github.com/aliansys/interview/helpers/net"
+	nethelpers "github.com/aliansys/interview/helpers/net"
 	"net/http"
 )
 
@@ -39,7 +39,7 @@ func (e *events) post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	events := r.FormValue("events")
-	userIP, err := net2.IpFromAddressString(r.RemoteAddr)
+	userIP, err := nethelpers.IpFromAddressString(r.RemoteAddr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "something went wrong. err %s", err)

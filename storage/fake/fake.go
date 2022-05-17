@@ -1,21 +1,24 @@
 package fake
 
 import (
-	"fmt"
 	"github.com/aliansys/interview/domain/dtos"
+	"log"
 )
 
 type fake struct {
-	saved int
+	saved  int
+	logger *log.Logger
 }
 
-func New() (*fake, error) {
-	return new(fake), nil
+func New(l *log.Logger) (*fake, error) {
+	return &fake{
+		logger: l,
+	}, nil
 }
 
 func (f *fake) Close() {}
 
 func (f *fake) Store(_ dtos.EventsWithIP) {
 	f.saved += 1
-	fmt.Printf("total events saved %d\n", f.saved)
+	f.logger.Printf("total events saved %d\n", f.saved)
 }

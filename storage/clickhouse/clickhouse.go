@@ -7,6 +7,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/aliansys/interview/domain/dtos"
 	"github.com/google/uuid"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -29,6 +30,8 @@ type (
 
 		ctx    context.Context
 		cancel context.CancelFunc
+
+		logger *log.Logger
 	}
 
 	statements struct {
@@ -53,7 +56,7 @@ const (
 	tableName = "events"
 )
 
-func New(cfg Config) (*repo, error) {
+func New(cfg Config, l *log.Logger) (*repo, error) {
 	opts, err := clickhouse.ParseDSN(cfg.DSN)
 	if err != nil {
 		return nil, err
@@ -83,6 +86,7 @@ func New(cfg Config) (*repo, error) {
 		},
 		ctx:    ctx,
 		cancel: cancel,
+		logger: l,
 	}
 
 	go repo.run()
@@ -103,7 +107,7 @@ func (r *repo) run() {
 				r.m.Unlock()
 				// здесь не до конца понятно насколько нам критичны подобного рода ошибки
 				// как минимум такое можно залогировать в систему мониторинга ошибок (условная Sentry)
-				fmt.Printf("save went wrong: %s\n", err)
+				r.logger.Printf("save went wrong: %s\n", err)
 				return
 			}
 
@@ -114,6 +118,7 @@ func (r *repo) run() {
 		select {
 		case <-r.ctx.Done():
 			return
+		default:
 		}
 
 		time.Sleep(time.Second)
@@ -134,7 +139,7 @@ func (r *repo) Close() {
 
 	err := r.save(ctx)
 	if err != nil {
-		fmt.Printf("save went wrong: %s\n", err)
+		r.logger.Printf("save went wrong: %s\n", err)
 	}
 
 	<-ctx.Done()

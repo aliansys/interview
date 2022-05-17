@@ -3,6 +3,7 @@ package eventssaver
 import (
 	"fmt"
 	"github.com/aliansys/interview/domain/dtos"
+	"log"
 	"net"
 	"sync"
 	"testing"
@@ -34,7 +35,7 @@ func BenchmarkProcess(b *testing.B) {
 			storage := &mockStorage{
 				wg: sync.WaitGroup{},
 			}
-			s := New(storage)
+			s := New(storage, log.Default())
 			s.run()
 
 			for i := 0; i < b.N; i++ {
