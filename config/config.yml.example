@@ -1,0 +1,6 @@
+api:
+  address: "127.0.0.1:3000"
+
+clickhouse:
+  dsn: "tcp://localhost:9000/interview"
+  batch_size: 1000
