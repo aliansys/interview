@@ -15,7 +15,7 @@ type (
 		Close()
 	}
 
-	saver struct {
+	processor struct {
 		storage Storage
 
 		ctx    context.Context
@@ -29,9 +29,9 @@ type (
 // numberOfWorkers - разделен на 2, чтобы половину "воркеров" дать на парсинг и половину на сохранение
 var numberOfWorkers = runtime.NumCPU() / 2
 
-func New(s Storage, l *log.Logger) *saver {
+func New(s Storage, l *log.Logger) *processor {
 	ctx, cancel := context.WithCancel(context.Background())
-	saver := &saver{
+	saver := &processor{
 		storage: s,
 		ctx:     ctx,
 		cancel:  cancel,
@@ -44,39 +44,39 @@ func New(s Storage, l *log.Logger) *saver {
 	return saver
 }
 
-func (s *saver) run() {
+func (p *processor) run() {
 	output := make(chan dtos.EnrichmentEvents, numberOfWorkers)
 
 	for i := 0; i < numberOfWorkers; i++ {
-		go s.parse(output)
+		go p.parse(output)
 	}
 
 	for i := 0; i < numberOfWorkers; i++ {
-		go s.save(output)
+		go p.save(output)
 	}
 }
 
-func (s *saver) Close() {
-	if s.cancel != nil {
-		s.cancel()
+func (p *processor) Close() {
+	if p.cancel != nil {
+		p.cancel()
 	}
 }
 
-func (s *saver) Process(events dtos.RawEnrichmentEvents) {
-	s.incoming <- events
+func (p *processor) Process(events dtos.RawEnrichmentEvents) {
+	p.incoming <- events
 }
 
-func (s *saver) parse(output chan dtos.EnrichmentEvents) {
-	p := &fastjson.Parser{}
+func (p *processor) parse(output chan dtos.EnrichmentEvents) {
+	parser := &fastjson.Parser{}
 
 	for {
 		select {
-		case rawEvents := <-s.incoming:
-			evnts, err := events.Parse(p, rawEvents.Events)
+		case rawEvents := <-p.incoming:
+			evnts, err := events.Parse(parser, rawEvents.Events)
 			if err != nil {
 				// здесь не до конца понятно насколько нам критичны подобного рода ошибки
 				// как минимум такое можно залогировать в систему мониторинга ошибок (условная Sentry)
-				s.logger.Printf("parsing error: %s\n", err)
+				p.logger.Printf("parsing error: %s\n", err)
 				continue
 			}
 
@@ -88,18 +88,18 @@ func (s *saver) parse(output chan dtos.EnrichmentEvents) {
 				Events: evnts,
 				IP:     rawEvents.IP,
 			}
-		case <-s.ctx.Done():
+		case <-p.ctx.Done():
 			return
 		}
 	}
 }
 
-func (s *saver) save(events chan dtos.EnrichmentEvents) {
+func (p *processor) save(events chan dtos.EnrichmentEvents) {
 	for {
 		select {
 		case es := <-events:
-			s.storage.Store(es)
-		case <-s.ctx.Done():
+			p.storage.Store(es)
+		case <-p.ctx.Done():
 			return
 		}
 	}
