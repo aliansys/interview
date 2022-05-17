@@ -33,14 +33,16 @@ func (e *events) post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseForm(); err != nil {
-		fmt.Fprintf(w, "ParseForm() err: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "form err: %v", err)
 		return
 	}
 
 	events := r.FormValue("events")
 	userIP, err := net2.IpFromAddressString(r.RemoteAddr)
 	if err != nil {
-		fmt.Fprintf(w, "events: %q err %s", r.RemoteAddr, err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "something went wrong. err %s", err)
 		return
 	}
 
