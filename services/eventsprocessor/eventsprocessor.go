@@ -16,7 +16,7 @@ type (
 	}
 
 	saver struct {
-		repo Storage
+		storage Storage
 
 		ctx    context.Context
 		cancel context.CancelFunc
@@ -29,12 +29,12 @@ type (
 // numberOfWorkers - разделен на 2, чтобы половину "воркеров" дать на парсинг и половину на сохранение
 var numberOfWorkers = runtime.NumCPU() / 2
 
-func New(r Storage, l *log.Logger) *saver {
+func New(s Storage, l *log.Logger) *saver {
 	ctx, cancel := context.WithCancel(context.Background())
 	saver := &saver{
-		repo:   r,
-		ctx:    ctx,
-		cancel: cancel,
+		storage: s,
+		ctx:     ctx,
+		cancel:  cancel,
 
 		incoming: make(chan dtos.RawEnrichmentEvents, numberOfWorkers),
 		logger:   l,
@@ -98,7 +98,7 @@ func (s *saver) save(events chan dtos.EnrichmentEvents) {
 	for {
 		select {
 		case es := <-events:
-			s.repo.Store(es)
+			s.storage.Store(es)
 		case <-s.ctx.Done():
 			return
 		}
