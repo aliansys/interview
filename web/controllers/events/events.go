@@ -23,11 +23,11 @@ func New(p Processor) *controller {
 	}
 }
 
-func (e *controller) Register(mux *http.ServeMux) {
-	mux.HandleFunc("/v1/events", e.post)
+func (c *controller) Register(mux *http.ServeMux) {
+	mux.HandleFunc("/v1/events", c.post)
 }
 
-func (e *controller) post(w http.ResponseWriter, r *http.Request) {
+func (c *controller) post(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		return
 	}
@@ -46,7 +46,7 @@ func (e *controller) post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e.processor.Process(dtos.RawEnrichmentEvents{
+	c.processor.Process(dtos.RawEnrichmentEvents{
 		Events: events,
 		IP:     userIP,
 	})
