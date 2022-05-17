@@ -25,7 +25,7 @@ func main() {
 	noCHPtr := flag.Bool("no-ch", false, "run with no clickhouse server")
 	flag.Parse()
 
-	var storage eventssaver.Repo
+	var storage eventssaver.Storage
 
 	if !*noCHPtr {
 		storage, err = clickhouse.New(clickhouse.Config(cfg.ClickHouse), l)

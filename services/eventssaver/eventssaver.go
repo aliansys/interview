@@ -10,13 +10,13 @@ import (
 )
 
 type (
-	Repo interface {
+	Storage interface {
 		Store(evnts dtos.EventsWithIP)
 		Close()
 	}
 
 	saver struct {
-		repo Repo
+		repo Storage
 
 		ctx    context.Context
 		cancel context.CancelFunc
@@ -29,7 +29,7 @@ type (
 // numberOfWorkers - разделен на 2, чтобы половину "воркеров" дать на парсинг и половину на сохранение
 var numberOfWorkers = runtime.NumCPU() / 2
 
-func New(r Repo, l *log.Logger) *saver {
+func New(r Storage, l *log.Logger) *saver {
 	ctx, cancel := context.WithCancel(context.Background())
 	saver := &saver{
 		repo:   r,
